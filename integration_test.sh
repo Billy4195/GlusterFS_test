@@ -40,7 +40,7 @@ local index
         rw_count=3
     fi
     echo "~~~~Start RW test~~~~"
-    tmux new-session -s test -d "./rwtest_Linux /log=6 /iosize=1024 /path=/volume/$volume_namex: 10"
+    tmux new-session -s test -d "./rwtest_Linux /log=6 /iosize=1024 /path=/volume/$volume_name x: 10"
     for ((index=1;index<rw_count;index++))
     do 
         tmux new-window -t test "./rwtest_Linux /log=6 /iosize=1024 /path=/volume/$volume_name x: 10"
@@ -75,7 +75,12 @@ local check_times
 }
 
 function check_rw_test {
-    return 0 
+    if [ $(pidof rwtest_Linux | wc -w) == $rw_count ]
+    then
+        return 0 
+    else
+        return 1
+    fi
 }
 
 parse_volume $1
