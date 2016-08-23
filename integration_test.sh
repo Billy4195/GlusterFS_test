@@ -67,7 +67,10 @@ local check_times
         if [ $? != 0 ]
         then 
             return 1
-        else
+        fi
+        check_heal_finish
+        if [ $? == 0 ]
+        then
             count=$((count+1))
         fi
     done
@@ -81,6 +84,10 @@ function check_rw_test {
     else
         return 1
     fi
+}
+
+function check_heal_finish {
+    return 0
 }
 
 parse_volume $1
