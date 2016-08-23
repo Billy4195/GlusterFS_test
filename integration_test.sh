@@ -49,11 +49,36 @@ local index
 
 function close_rw_test {
     tmux kill-session -t test
-    rm -rf /volume/$volume_name/_R
+    rm -rf /volume/$volume_name/_R\@W_*
     echo "~~~~Close RW test success!~~~~" 
+}
+
+function check_status {
+local count=0
+local check_times
+    if [ $# == 0 ]
+    then 
+        check_times=5
+    fi
+    while [ $count -lt $check_times ]
+    do 
+        sleep 2
+        check_rw_test
+        if [ $? != 0 ]
+        then 
+            return 1
+        else
+            count=$((count+1))
+        fi
+    done
+    echo "Check status Finish"
+}
+
+function check_rw_test {
+    return 0 
 }
 
 parse_volume $1
 start_rw_test
-
+check_status
 close_rw_test
