@@ -31,4 +31,29 @@ local index
     done
 }
 
+function start_rw_test {
+local index
+    if [ $# != 0 ] && [ $1 -gt 0 ]
+    then 
+        rw_count=$1
+    else
+        rw_count=3
+    fi
+    echo "~~~~Start RW test~~~~"
+    tmux new-session -s test -d "./rwtest_Linux /log=6 /iosize=1024 /path=/volume/$volume_namex: 10"
+    for ((index=1;index<rw_count;index++))
+    do 
+        tmux new-window -t test "./rwtest_Linux /log=6 /iosize=1024 /path=/volume/$volume_name x: 10"
+    done
+}
+
+function close_rw_test {
+    tmux kill-session -t test
+    rm -rf /volume/$volume_name/_R
+    echo "~~~~Close RW test success!~~~~" 
+}
+
 parse_volume $1
+start_rw_test
+
+close_rw_test
