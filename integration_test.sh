@@ -198,8 +198,43 @@ function replace_brick_fn {
     gluster v replace-brick $volume_name $1 $2 commit force
 }
 
+function disconnect_test {
+local index
+    echo "==========NETWORK DISCONNECT TEST START=========="
+    for ((index=0;index<${#nodes[@]};index++))
+    do
+        check_status
+        disconnect_fn ${nodes[$index]}
+        check_status 10 ${nodes[$index]}
+
+        case "$?" in
+        1)
+            echo "RW test ERROR"
+            echo "==========NETWORK DISCONNECT TEST END=========="
+            return 1
+            ;;
+        esac
+
+    done
+    echo "==========NETWORK DISCONNECT TEST END=========="
+    return 0
+}
+
+function disconnect_fn {
+    ssh root@$1-backup ifdown bond-slave-eth1 > /dev/null
+    ssh root@$1-backup ifdown bond-slave-eth2 > /dev/null
+    echo "DISCONNECT $1"
+    sleep 20
+    ssh root@$1-backup ifup bond-slave-eth1   > /dev/null
+    ssh root@$1-backup ifup bond-slave-eth2   > /dev/null
+    echo "RECONNECT $1"
+    sleep 20
+    return 0
+}
+
 parse_volume $1
 start_rw_test
 reboot_test
 replace_brick_test
+disconnect_test
 close_rw_test
