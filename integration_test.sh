@@ -87,6 +87,41 @@ function check_rw_test {
 }
 
 function check_heal_finish {
+local bricks
+local nodes
+local tmp
+local index
+local dirty_a
+local dirty
+    tmp=($(gluster v info $volume_name | grep '^Brick[0-9]*:' | sed 's/^.* \([Vv][Mm][0-9]*\S*\)/\1/'))
+    for ((index=0;index<${#tmp[@]};index++))
+    do
+        nodes=(${nodes[@]} $(echo ${tmp[$index]} |sed 's/\([Vv][Mm][0-9]*\).*/\1/'))
+    done
+    for ((index=0;index<${#tmp[@]};index++))
+    do
+        bricks=(${bricks[@]} $(echo ${tmp[$index]} |sed 's/^[Vv][Mm][0-9]*:\(\S*\)/\1/'))
+    done
+    index=0
+    while [ $index -lt ${#nodes[@]} ]
+    do 
+        dirty=0
+        dirty_a=($(ssh root@${nodes[$index]} "for i in ${bricks[$index]}/*;do getfattr -d -m. -e hex --absolute-names \$i |grep dirty ;done"))
+        #echo ${dirty[@]}
+        for ((tmp=0;tmp<${#dirty_a[@]};tmp++))
+        do
+            if [ ${dirty_a[$tmp]} != "trusted.ec.dirty=0x00000000000000000000000000000000" ]
+            then 
+                dirty=1
+                break
+            fi
+        done
+        if [ $dirty -eq 1 ]
+        then 
+            continue
+        fi
+        index=$((index+1))
+    done
     return 0
 }
 
