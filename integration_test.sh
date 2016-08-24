@@ -165,7 +165,41 @@ function reboot_fn {
     return 0
 }
 
+function replace_brick_test {
+local index
+local next
+    echo "==========REPLACE BRICK TEST START=========="
+    for ((index=0;index<$((${#nodes[@]}+1));index++))
+    do
+        if [ $index -eq ${#nodes[@]} ]
+        then
+            next=0
+        else
+            next=$((index+1))
+        fi
+        check_status
+        replace_brick_fn ${bricks[$next]} ${bricks[$index]}
+        check_status 10
+
+        case "$?" in
+        1)
+            echo "RW test ERROR"
+            echo "==========REPLACE BRICK TEST END=========="
+            return 1
+            ;;
+        esac
+
+    done
+    echo "==========REPLACE BRICK TEST END=========="
+    return 0
+}
+
+function replace_brick_fn {
+    gluster v replace-brick $volume_name $1 $2 commit force
+}
+
 parse_volume $1
 start_rw_test
 reboot_test
+replace_brick_test
 close_rw_test
