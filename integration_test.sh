@@ -19,6 +19,22 @@ local brick_t
     else
         check_mount $node_t $brick_t
     fi
+    read -p "Enter number of reboot test: " reboot_num
+    if [ -z $reboot_num ]
+    then 
+        reboot_num=1
+    fi
+    read -p "Enter number of replace-brick test: " replace_num
+    if [ -z $replace_num ]
+    then
+        replace_num=1
+    fi
+    read -p "Enter number of disconnect test: " disconnect_num
+    if [ -z $disconnect_num ]
+    then
+        disconnect_num=1
+    fi
+    echo $reboot_num $replace_num $disconnect_num
     tmp=($(gluster v info $1 | grep '^Brick[0-9]*:' | sed 's/^.* \([Vv][Mm][0-9]*\S*\)/\1/'))
     for ((index=0;index<${#tmp[@]};index++))
     do
@@ -275,21 +291,31 @@ function disconnect_fn {
 }
 
 function Main_test {
-    reboot_test
-    if [ $? -ne 0 ]
-    then 
-        return 1
-    fi
-    replace_brick_test
-    if [ $? -ne 0 ]
-    then 
-        return 1
-    fi
-    disconnect_test
-    if [ $? -ne 0 ]
-    then
-        return 1
-    fi
+local index
+    for ((index=0;index<$reboot_num;index++))
+    do
+        reboot_test
+        if [ $? -ne 0 ]
+        then 
+            return 1
+        fi
+    done
+    for ((index=0;index<$replace_num;index++))
+    do
+        replace_brick_test
+        if [ $? -ne 0 ]
+        then 
+            return 1
+        fi
+    done
+    for ((index=0;index<$disconnect_num;index++))
+    do
+        disconnect_test
+        if [ $? -ne 0 ]
+        then
+            return 1
+        fi
+    done
 }
 
 parse_volume $1
