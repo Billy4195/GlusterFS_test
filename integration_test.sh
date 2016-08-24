@@ -16,6 +16,8 @@ local brick_t
     if [ $? -eq 1 ]
     then 
         create_brick $node_t $brick_t
+    else
+        check_mount $node_t $brick_t
     fi
     tmp=($(gluster v info $1 | grep '^Brick[0-9]*:' | sed 's/^.* \([Vv][Mm][0-9]*\S*\)/\1/'))
     for ((index=0;index<${#tmp[@]};index++))
@@ -42,6 +44,18 @@ local device
     fi
     echo "Create a new Brick from $1 /dev/$device"
     return 0
+}
+
+function check_mount {
+    ssh root@$1 "mount | grep $2" > /dev/null
+    if [ $? -ne 0 ]
+    then 
+        create_brick $1 $2
+    fi
+    if [ $? -eq 0 ]
+    then 
+        echo "Brick has been Mounted on"
+    fi
 }
 
 function show_parse_result {
