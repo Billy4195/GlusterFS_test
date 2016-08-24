@@ -274,9 +274,25 @@ function disconnect_fn {
     return 0
 }
 
+function Main_test {
+    reboot_test
+    if [ $? -ne 0 ]
+    then 
+        return 1
+    fi
+    replace_brick_test
+    if [ $? -ne 0 ]
+    then 
+        return 1
+    fi
+    disconnect_test
+    if [ $? -ne 0 ]
+    then
+        return 1
+    fi
+}
+
 parse_volume $1
 start_rw_test
-reboot_test
-replace_brick_test
-disconnect_test
+Main_test
 close_rw_test
