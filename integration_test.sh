@@ -64,11 +64,21 @@ local check_times
     fi
     while [ $count -lt $check_times ]
     do 
+        echo Count --- $count
         sleep 2
         check_rw_test
         if [ $? != 0 ]
         then 
             return 1
+        fi
+        if [ $# -ge 2 ]
+        then
+            ping -c 1 $2 > /dev/null
+            if [ $? != 0 ]
+            then 
+                continue
+            fi
+            echo "$2 UP"
         fi
         check_heal_finish
         if [ $? == 0 ]
@@ -150,6 +160,8 @@ local index
 }
 
 function reboot_fn {
+    ssh $1 reboot
+    sleep 5
     return 0
 }
 
