@@ -12,7 +12,7 @@ local index
     do
         nodes=(${nodes[@]} $(echo ${tmp[$index]} |sed 's/\([Vv][Mm][0-9]*\).*/\1/'))
     done
-    bricks=($bricks ${tmp[@]})
+    bricks=(${bricks[@]} ${tmp[@]})
     show_parse_result
 }
 
