@@ -59,6 +59,8 @@ local check_times
     if [ $# == 0 ]
     then 
         check_times=5
+    else 
+        check_times=$1
     fi
     while [ $count -lt $check_times ]
     do 
@@ -125,7 +127,33 @@ local dirty
     return 0
 }
 
+function reboot_test {
+local index
+    echo "==========REBOOT TEST START=========="
+    for ((index=0;index<${#nodes[@]};index++))
+    do
+        check_status
+        reboot_fn ${nodes[$index]}
+        check_status 10 ${nodes[$index]}
+
+        case "$?" in
+        1)
+            echo "RW test ERROR"
+            echo "==========REBOOT TEST END=========="
+            return 1
+            ;;
+        esac
+
+    done
+    echo "==========REBOOT TEST END=========="
+    return 0
+}
+
+function reboot_fn {
+    return 0
+}
+
 parse_volume $1
 start_rw_test
-check_status
+reboot_test
 close_rw_test
