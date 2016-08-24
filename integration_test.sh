@@ -1,12 +1,22 @@
 #!bin/bash
 
-bricks=(VM25:/export/bk1/fs)
+bricks=()
 nodes=()
 
 function parse_volume {
 local tmp
 local index
+local node_t
+local brick_t
     volume_name=$1
+    read -p "Enter a additional brick: " bricks
+    node_t=$(echo $bricks | sed 's/\([Vv][Mm][0-9]*\):.*/\1/')
+    brick_t=$(echo $bricks | sed 's/[Vv][Mm][0-9]*:\(\S*\)/\1/')
+    ssh root@$node_t "[ -d $brick_t ]"
+    if [ $? -eq 1 ]
+    then 
+        create_brick $node_t $brick_t
+    fi
     tmp=($(gluster v info $1 | grep '^Brick[0-9]*:' | sed 's/^.* \([Vv][Mm][0-9]*\S*\)/\1/'))
     for ((index=0;index<${#tmp[@]};index++))
     do
@@ -14,6 +24,24 @@ local index
     done
     bricks=(${bricks[@]} ${tmp[@]})
     show_parse_result
+}
+
+function create_brick {
+local device
+    device=$(ssh root@$1 lsblk | tail -n 1 | sed 's/\(\S*\).*/\1/')
+    ssh root@$1 "mkfs.xfs /dev/$device" > /dev/null 2>/dev/null
+    ssh root@$1 "echo '/dev/$device $2 xfs inode64,noatime,nofail 0 0' >> /etc/fstab" > /dev/null
+    ssh root@$1 "mkdir -p $2" > /dev/null
+    ssh root@$1 "mount -a" > /dev/null
+
+    ssh root@$1 "[ -d $2 ]"
+    if [ $? -ne 0 ]
+    then 
+        echo "Create Brick Failed"
+        return 1
+    fi
+    echo "Create a new Brick from $1 /dev/$device"
+    return 0
 }
 
 function show_parse_result {
