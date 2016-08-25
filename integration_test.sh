@@ -112,10 +112,10 @@ local index
 function start_rw_test {
 local index
     echo "~~~~Start RW test~~~~"
-    tmux new-session -s test -d "./rwtest_Linux /log=6 /iosize=1024 /path=/volume/$volume_name x: $rw_size"
+    tmux new-session -s test -d "./rwtest_Linux /log=6 /iosize=2048 /path=/volume/$volume_name x: $rw_size"
     for ((index=1;index<rw_count;index++))
     do 
-        tmux new-window -t test "./rwtest_Linux /log=6 /iosize=1024 /path=/volume/$volume_name x: $rw_size"
+        tmux new-window -t test "./rwtest_Linux /log=6 /iosize=2048 /path=/volume/$volume_name x: $rw_size"
     done
 }
 
