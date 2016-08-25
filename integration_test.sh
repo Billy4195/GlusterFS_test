@@ -16,8 +16,8 @@ local brick_t
     read -p "Enter number of RW test" rw_count
     read -p "Enter RW test file size" rw_size
 
-    node_t=$(echo $bricks | sed 's/\([Vv][Mm][0-9]*\):.*/\1/')
-    brick_t=$(echo $bricks | sed 's/[Vv][Mm][0-9]*:\(\S*\)/\1/')
+    node_t=$(echo $bricks | sed 's/\(.*\):.*/\1/')
+    brick_t=$(echo $bricks | sed 's/.*:\(\S*\)/\1/')
     ssh root@$node_t "[ -d $brick_t ]"
     if [ $? -eq 1 ]
     then 
@@ -45,10 +45,10 @@ local brick_t
     then
         rw_size=10
     fi
-    tmp=($(gluster v info $1 | grep '^Brick[0-9]*:' | sed 's/^.* \([Vv][Mm][0-9]*\S*\)/\1/'))
+    tmp=($(gluster v info $1 | grep '^Brick[0-9]*:' | sed 's/^.* \(.*\S*\)/\1/'))
     for ((index=0;index<${#tmp[@]};index++))
     do
-        nodes=(${nodes[@]} $(echo ${tmp[$index]} |sed 's/\([Vv][Mm][0-9]*\).*/\1/'))
+        nodes=(${nodes[@]} $(echo ${tmp[$index]} |sed 's/\(.*\):.*/\1/'))
     done
     bricks=(${bricks[@]} ${tmp[@]})
     show_parse_result
@@ -177,14 +177,14 @@ local tmp
 local index
 local dirty_a
 local dirty
-    tmp=($(gluster v info $volume_name | grep '^Brick[0-9]*:' | sed 's/^.* \([Vv][Mm][0-9]*\S*\)/\1/'))
+    tmp=($(gluster v info $volume_name | grep '^Brick[0-9]*:' | sed 's/^.* \(.*\S*\)/\1/'))
     for ((index=0;index<${#tmp[@]};index++))
     do
-        nodes=(${nodes[@]} $(echo ${tmp[$index]} |sed 's/\([Vv][Mm][0-9]*\).*/\1/'))
+        nodes=(${nodes[@]} $(echo ${tmp[$index]} |sed 's/\(.*\):.*/\1/'))
     done
     for ((index=0;index<${#tmp[@]};index++))
     do
-        bricks=(${bricks[@]} $(echo ${tmp[$index]} |sed 's/^[Vv][Mm][0-9]*:\(\S*\)/\1/'))
+        bricks=(${bricks[@]} $(echo ${tmp[$index]} |sed 's/^.*:\(\S*\)/\1/'))
     done
     index=0
     while [ $index -lt ${#nodes[@]} ]
