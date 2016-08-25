@@ -136,7 +136,7 @@ local check_times
     fi
     while [ $count -lt $check_times ]
     do 
-        echo Count --- $count
+        #echo Count --- $count
         sleep 2
         check_rw_test
         if [ $? != 0 ]
@@ -150,7 +150,7 @@ local check_times
             then 
                 continue
             fi
-            echo "$2 UP"
+            #echo "$2 UP"
         fi
         check_heal_finish
         if [ $? == 0 ]
