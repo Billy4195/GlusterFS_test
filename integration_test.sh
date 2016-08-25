@@ -13,6 +13,8 @@ local brick_t
     read -p "Enter number of reboot test: " reboot_num
     read -p "Enter number of replace-brick test: " replace_num
     read -p "Enter number of disconnect teset: " disconnect_num
+    read -p "Enter number of RW test" rw_count
+    read -p "Enter RW test file size" rw_size
 
     node_t=$(echo $bricks | sed 's/\([Vv][Mm][0-9]*\):.*/\1/')
     brick_t=$(echo $bricks | sed 's/[Vv][Mm][0-9]*:\(\S*\)/\1/')
@@ -34,6 +36,14 @@ local brick_t
     if [ -z $disconnect_num ]
     then
         disconnect_num=1
+    fi
+    if [ -z $rw_count ]
+    then
+        rw_count=3
+    fi
+    if [ -z $rw_size ]
+    then
+        rw_size=10
     fi
     tmp=($(gluster v info $1 | grep '^Brick[0-9]*:' | sed 's/^.* \([Vv][Mm][0-9]*\S*\)/\1/'))
     for ((index=0;index<${#tmp[@]};index++))
@@ -94,21 +104,18 @@ local index
     echo "###Replace brick $replace_num times"
     echo "###Network disconnect $disconnect_num times"
     echo ""
+    echo "###Num of RW_test : $rw_count"
+    echo "###Num of RW_size : $rw_size"
+    echo ""
 }
 
 function start_rw_test {
 local index
-    if [ $# != 0 ] && [ $1 -gt 0 ]
-    then 
-        rw_count=$1
-    else
-        rw_count=3
-    fi
     echo "~~~~Start RW test~~~~"
-    tmux new-session -s test -d "./rwtest_Linux /log=6 /iosize=1024 /path=/volume/$volume_name x: 10"
+    tmux new-session -s test -d "./rwtest_Linux /log=6 /iosize=1024 /path=/volume/$volume_name x: $rw_size"
     for ((index=1;index<rw_count;index++))
     do 
-        tmux new-window -t test "./rwtest_Linux /log=6 /iosize=1024 /path=/volume/$volume_name x: 10"
+        tmux new-window -t test "./rwtest_Linux /log=6 /iosize=1024 /path=/volume/$volume_name x: $rw_size"
     done
 }
 
