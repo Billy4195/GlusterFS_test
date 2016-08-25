@@ -12,9 +12,9 @@ local brick_t
     read -p "Enter a additional brick: " bricks
     read -p "Enter number of reboot test: " reboot_num
     read -p "Enter number of replace-brick test: " replace_num
-    read -p "Enter number of disconnect teset: " disconnect_num
-    read -p "Enter number of RW test" rw_count
-    read -p "Enter RW test file size" rw_size
+    read -p "Enter number of disconnect test: " disconnect_num
+    read -p "Enter number of RW test: " rw_count
+    read -p "Enter RW test file size: " rw_size
 
     node_t=$(echo $bricks | sed 's/\(.*\):.*/\1/')
     brick_t=$(echo $bricks | sed 's/.*:\(\S*\)/\1/')
