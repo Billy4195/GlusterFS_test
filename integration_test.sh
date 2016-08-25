@@ -10,6 +10,10 @@ local node_t
 local brick_t
     volume_name=$1
     read -p "Enter a additional brick: " bricks
+    read -p "Enter number of reboot test: " reboot_num
+    read -p "Enter number of replace-brick test: " replace_num
+    read -p "Enter number of disconnect teset: " disconnect_num
+
     node_t=$(echo $bricks | sed 's/\([Vv][Mm][0-9]*\):.*/\1/')
     brick_t=$(echo $bricks | sed 's/[Vv][Mm][0-9]*:\(\S*\)/\1/')
     ssh root@$node_t "[ -d $brick_t ]"
@@ -19,22 +23,18 @@ local brick_t
     else
         check_mount $node_t $brick_t
     fi
-    read -p "Enter number of reboot test: " reboot_num
     if [ -z $reboot_num ]
-    then 
+    then
         reboot_num=1
     fi
-    read -p "Enter number of replace-brick test: " replace_num
     if [ -z $replace_num ]
     then
         replace_num=1
     fi
-    read -p "Enter number of disconnect test: " disconnect_num
     if [ -z $disconnect_num ]
     then
         disconnect_num=1
     fi
-    echo $reboot_num $replace_num $disconnect_num
     tmp=($(gluster v info $1 | grep '^Brick[0-9]*:' | sed 's/^.* \([Vv][Mm][0-9]*\S*\)/\1/'))
     for ((index=0;index<${#tmp[@]};index++))
     do
@@ -77,16 +77,23 @@ function check_mount {
 function show_parse_result {
 local index
     echo "Volume name : $volume_name"
+    echo ""
     echo "Volume nodes :"
     for ((index=0;index<${#nodes[@]};index++))
     do
         echo "    ${nodes[$index]}"
     done
+    echo ""
     echo "Availiable Bricks:"
     for ((index=0;index<${#bricks[@]};index++))
     do
         echo "    ${bricks[$index]}"
     done
+    echo ""
+    echo "###Reboot $reboot_num times"
+    echo "###Replace brick $replace_num times"
+    echo "###Network disconnect $disconnect_num times"
+    echo ""
 }
 
 function start_rw_test {
