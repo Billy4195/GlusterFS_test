@@ -11,7 +11,7 @@ add=$(tail -n 1 /etc/hosts)
 match=$(echo $add | awk {'print $2'})
 for ((index=0;index<${#hosts[@]};index++))
 do
-    ssh-copy-id root@${hosts[$index]]}  2>/dev/null
+    ssh-copy-id root@${hosts[$index]}  2>/dev/null
     if [ $? -eq 0 ]
     then
         echo "${hosts[$index]} copy key success!!"
