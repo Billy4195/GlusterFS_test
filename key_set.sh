@@ -6,7 +6,7 @@ then
     yum install -y tmux
 fi
 
-hosts=($(cat /etc/hosts | grep -v local | awk {' print $2 '} | grep -v backup ))
+hosts=($(cat /etc/hosts | grep -v local | awk {' print $2 '} ))
 add=$(tail -n 1 /etc/hosts)
 match=$(echo $add | awk {'print $2'})
 for ((index=0;index<${#hosts[@]};index++))
