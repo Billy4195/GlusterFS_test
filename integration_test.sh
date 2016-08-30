@@ -51,7 +51,17 @@ local brick_t
     then
         rw_size=10
     fi
+    close_monitor
     show_parse_result
+}
+
+function close_monitor {
+local index
+    monitor stop
+    for ((index=0;index<${#nodes[@]};index++))
+    do
+        ssh root@${nodes[$index]} "monitor stop"
+    done
 }
 
 function create_brick {
