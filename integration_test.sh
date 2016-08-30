@@ -1,6 +1,6 @@
 #!bin/bash
 
-bricks=(/export/blk/fs)
+bricks=()
 nodes=()
 
 function parse_volume {
@@ -14,7 +14,7 @@ local brick_t
     read -p "Enter number of disconnect test: " disconnect_num
     read -p "Enter number of RW test: " rw_count
     read -p "Enter RW test file size: " rw_size
-
+    echo ""
     tmp=($(gluster v info $1 | grep '^Brick[0-9]*:' | sed 's/^.* \(.*\S*\)/\1/'))
     for ((index=0;index<${#tmp[@]};index++))
     do
@@ -23,9 +23,11 @@ local brick_t
     bricks=(${bricks[@]} ${tmp[@]})
 
     [ -d /export/blk/fs ]
+    tmp=$(tail -n 1 /etc/hosts | awk {' print $2'})
+    bricks=($tmp:/export/blk/fs ${bricks[@]})
     if [ $? -eq 1 ]
     then 
-        create_brick 
+        create_brick
     else
         check_mount 
     fi
@@ -65,9 +67,6 @@ local vg
     echo "/dev/$vg/test /export/blk/fs  xfs inode64,noatime,nofail 0 0" >> /etc/fstab 
     mkdir -p /export/blk/fs
     mount -a
-#    ssh root@$1 "echo '/dev/$device $2 xfs inode64,noatime,nofail 0 0' >> /etc/fstab" > /dev/null
-#    ssh root@$1 "mkdir -p $2" > /dev/null
-#    ssh root@$1 "mount -a" > /dev/null
 
     [ -d /export/blk/fs ]
     if [ $? -ne 0 ]
@@ -76,11 +75,12 @@ local vg
         return 1
     fi
     echo "Create a new Brick from /dev/$vg/test "
+    echo ""
     return 0
 }
 
 function check_mount {
-    mount | grep /export/blk/fs
+    mount | grep /export/blk/fs >/dev/null
     if [ $? -ne 0 ]
     then 
         create_brick
@@ -88,6 +88,7 @@ function check_mount {
     if [ $? -eq 0 ]
     then 
         echo "Brick has been Mounted on"
+        echo ""
     fi
 }
 
