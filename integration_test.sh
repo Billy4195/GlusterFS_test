@@ -9,21 +9,27 @@ local index
 local node_t
 local brick_t
     volume_name=$1
-    read -p "Enter a additional brick: " bricks
     read -p "Enter number of reboot test: " reboot_num
     read -p "Enter number of replace-brick test: " replace_num
     read -p "Enter number of disconnect test: " disconnect_num
     read -p "Enter number of RW test: " rw_count
     read -p "Enter RW test file size: " rw_size
+    echo ""
+    tmp=($(gluster v info $1 | grep '^Brick[0-9]*:' | sed 's/^.* \(.*\S*\)/\1/'))
+    for ((index=0;index<${#tmp[@]};index++))
+    do
+        nodes=(${nodes[@]} $(echo ${tmp[$index]} |sed 's/\(.*\):.*/\1/'))
+    done
+    bricks=(${bricks[@]} ${tmp[@]})
 
-    node_t=$(echo $bricks | sed 's/\(.*\):.*/\1/')
-    brick_t=$(echo $bricks | sed 's/.*:\(\S*\)/\1/')
-    ssh root@$node_t "[ -d $brick_t ]"
+    [ -d /export/blk/fs ]
+    tmp=$(tail -n 1 /etc/hosts | awk {' print $2'})
+    bricks=($tmp:/export/blk/fs ${bricks[@]})
     if [ $? -eq 1 ]
     then 
-        create_brick $node_t $brick_t
+        create_brick
     else
-        check_mount $node_t $brick_t
+        check_mount 
     fi
     if [ -z $reboot_num ]
     then
@@ -45,42 +51,44 @@ local brick_t
     then
         rw_size=10
     fi
-    tmp=($(gluster v info $1 | grep '^Brick[0-9]*:' | sed 's/^.* \(.*\S*\)/\1/'))
-    for ((index=0;index<${#tmp[@]};index++))
-    do
-        nodes=(${nodes[@]} $(echo ${tmp[$index]} |sed 's/\(.*\):.*/\1/'))
-    done
-    bricks=(${bricks[@]} ${tmp[@]})
     show_parse_result
 }
 
 function create_brick {
 local device
-    device=$(ssh root@$1 lsblk | tail -n 1 | sed 's/\(\S*\).*/\1/')
-    ssh root@$1 "mkfs.xfs /dev/$device" > /dev/null 2>/dev/null
-    ssh root@$1 "echo '/dev/$device $2 xfs inode64,noatime,nofail 0 0' >> /etc/fstab" > /dev/null
-    ssh root@$1 "mkdir -p $2" > /dev/null
-    ssh root@$1 "mount -a" > /dev/null
+local tmp
+local pe
+local vg
+    tmp=$(echo ${bricks[1]} | sed 's/.*\(lvol.*\)\/.*/\1/' )
+    pe=$(ssh root@${nodes[0]} "vgs -o lv_name,vg_name,seg_size_pe |grep $tmp | awk {'print \$3'} ")
+    vg=$( vgs | sed -n '2,2p' | awk {'print $1'} )
+    lvcreate -l $pe -i 2 -I 128k -W n -Z y -n test $vg
+    mkfs.xfs -m crc=1 -d su=128k,sw=2 -f -K /dev/$vg/test > /dev/null 2>/dev/null
+    echo "/dev/$vg/test /export/blk/fs  xfs inode64,noatime,nofail 0 0" >> /etc/fstab 
+    mkdir -p /export/blk/fs
+    mount -a
 
-    ssh root@$1 "[ -d $2 ]"
+    [ -d /export/blk/fs ]
     if [ $? -ne 0 ]
     then 
         echo "Create Brick Failed"
         return 1
     fi
-    echo "Create a new Brick from $1 /dev/$device"
+    echo "Create a new Brick from /dev/$vg/test "
+    echo ""
     return 0
 }
 
 function check_mount {
-    ssh root@$1 "mount | grep $2" > /dev/null
+    mount | grep /export/blk/fs >/dev/null
     if [ $? -ne 0 ]
     then 
-        create_brick $1 $2
+        create_brick
     fi
     if [ $? -eq 0 ]
     then 
         echo "Brick has been Mounted on"
+        echo ""
     fi
 }
 
