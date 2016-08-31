@@ -14,8 +14,8 @@ After each event execute, it will wait for the volume heal finished then execute
 
 ## Requirement
   * a EC volume
-  * a additional server (For running test script)
-  * a additional brick on additional server
+  * an additional server (For running test script)
+  * a VG has enough space to create a brick ( as one of EC volume's bricks )
 
 ---
 ## How to use
@@ -40,7 +40,6 @@ After each event execute, it will wait for the volume heal finished then execute
     sh integration_test.sh <volume_name>
     
 then type in 
-* additional brick ( must need )
 * number of test ( default = 1 )
 * number of RW_test ( default = 3 )
 * file size for RW_test ( default = 10 )
